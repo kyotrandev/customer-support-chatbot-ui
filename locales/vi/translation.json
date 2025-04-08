@@ -1,0 +1,14 @@
+{
+  "welcome": "Chào mừng đến với trang web của chúng tôi!",
+  "title": "Demo trò chuyện với API Coze",
+  "refresh": "Làm mới lịch sử",
+  "config": "Cấu hình",
+  "loading_history": "Đang tải lịch sử...",
+  "no_config": "Vui lòng cấu hình thông tin API Coze trước",
+  "start_chat": "Gửi tin nhắn để bắt đầu trò chuyện",
+  "configure_api": "Cấu hình API",
+  "send_message": "Nhập tin nhắn...",
+  "error_loading_history": "Tải lịch sử trò chuyện thất bại, vui lòng thử lại",
+  "error_sending": "Lỗi: Gửi tin nhắn thất bại, vui lòng thử lại",
+  "error": "Lỗi"
+}

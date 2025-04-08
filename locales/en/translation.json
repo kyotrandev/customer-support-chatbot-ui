@@ -1,0 +1,14 @@
+{
+  "welcome": "Welcome to our site!",
+  "title": "Coze API Chat Demo",
+  "refresh": "Refresh History",
+  "config": "Configuration",
+  "loading_history": "Loading history...",
+  "no_config": "Please configure your Coze API credentials first",
+  "start_chat": "Send a message to start chatting",
+  "configure_api": "Configure API",
+  "send_message": "Enter your message...",
+  "error_loading_history": "Failed to load history messages, please try again",
+  "error_sending": "Error: Failed to send message, please try again",
+  "error": "Error"
+}
