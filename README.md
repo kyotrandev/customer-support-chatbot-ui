@@ -1,4 +1,4 @@
-# 💬 Coze API Chat Demo
+# 💬 Customer Assistant Chat Demo
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Built%20with-Next.js-000?logo=next.js)](https://nextjs.org/)
@@ -12,7 +12,6 @@
 ## 📑 Table of Contents
 
 - [✨ Features](#-features)
-- [🚀 Installation](#-installation)
 - [⚙️ Configuration](#️-configuration)
 - [💡 Usage](#-usage)
 - [🔌 API Endpoints](#-api-endpoints)
