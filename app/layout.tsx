@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: '扣子 API 聊天演示',
-  description: '扣子 API 聊天演示',
+  title: 'Trợ lý sen - Chăm sóc khách hàng',
+  description: 'Trợ lý sen - Chuyên viên chăm sóc khách hàng',
   generator: 'v0.dev',
 };
 
@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="en-US">
       <body>{children}</body>
     </html>
   );

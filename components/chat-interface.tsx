@@ -118,10 +118,9 @@ export default function ChatInterface() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || !config) {
-      if (!config) setConfigOpen(true);
+      if (!config) setConfigOpen(true); 
       return;
     }
-
     const userMessage: Message = { role: 'user', content: input };
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
@@ -148,6 +147,7 @@ export default function ChatInterface() {
                   ? chunk
                   : updated[lastIndex].content + chunk,
             };
+            console.log('Current messages:', updated);
             return updated;
           });
         }
