@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Trợ lý sen - Chăm sóc khách hàng",
-  description: "Trợ lý sen - Chuyên viên chăm sóc khách hàng",
+  title: "Trợ thủ sen - Chăm sóc khách hàng",
+  description: "Trợ thủ sen - Chuyên viên chăm sóc khách hàng",
   generator: "v0.dev",
   icons: {
     icon: "/favicon.ico",

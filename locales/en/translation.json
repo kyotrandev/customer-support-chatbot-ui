@@ -10,5 +10,6 @@
   "send_message": "Enter your message...",
   "error_loading_history": "Failed to load history messages, please try again",
   "error_sending": "Error: Failed to send message, please try again",
-  "error": "Error"
+  "error": "Error",
+  "thinking": "Thinking..."
 }

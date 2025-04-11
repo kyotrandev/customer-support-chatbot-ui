@@ -10,5 +10,6 @@
   "send_message": "Nhập tin nhắn...",
   "error_loading_history": "Tải lịch sử trò chuyện thất bại, vui lòng thử lại",
   "error_sending": "Lỗi: Gửi tin nhắn thất bại, vui lòng thử lại",
-  "error": "Lỗi"
+  "error": "Lỗi",
+  "thinking": "Đang phản hồi..."
 }

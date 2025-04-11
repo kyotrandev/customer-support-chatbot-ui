@@ -137,37 +137,32 @@ export async function sendMessageToCoze(
     };
   }
 }
-
-
-export async function retrieveConversation(
-  conversationId: string,
-  apiKey: string
+export async function retrieveUserConversations(
+  userId: string
 ): Promise<{ success: boolean; data?: any; error?: string }> {
   try {
     const response = await fetch(
-      `https://api.coze.cn/v1/conversation/retrieve?conversation_id=${conversationId}`,
+      `/api/conversations-proxy`,
       {
-        method: "GET",
+        method: "POST",
         headers: {
-          Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          userId: userId,
+        }),
       }
     );
-
-    const data = await response.json();
-
-    if (data.code === 0) {
-      return { success: true, data: data.data };
-    } else {
-      return { success: false, error: data.msg || "获取会话信息失败" };
-    }
-  } catch (error) {
+    
+    const result = await response.json();
+    
+    //proxy already formats the response
+    return result;
+  }
+  catch (error) {
     return {
       success: false,
-      error: `获取会话信息失败: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
+      error: `Failed to request conversations: ${error instanceof Error ? error.message : String(error)}`,
     };
   }
 }

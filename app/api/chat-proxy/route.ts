@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     // Xử lý streaming
     const contentType = response.headers.get('content-type');
     if (contentType?.includes('text/event-stream')) {
-      // Trong App Router, xử lý streaming hơi khác
+      // Trong App Router, xử lý streaming 
       return new NextResponse(response.body, {
         headers: {
           'Content-Type': 'text/event-stream',
@@ -36,8 +36,7 @@ export async function POST(req: NextRequest) {
       });
     } else {
       // Xử lý response JSON`
-      const data = await response.json();
-      console.log('Response from backend:', data);
+      const data = await response.json(); 
       return NextResponse.json(data, { status: response.status });
     }
   } catch (error) {
