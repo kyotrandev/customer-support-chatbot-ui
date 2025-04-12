@@ -168,34 +168,58 @@ export async function retrieveUserConversations(
 }
 
 export async function retrieveConversationMessages(
-  conversationId: string,
-  apiKey: string
+  conversationId: string
 ): Promise<{ success: boolean; messages?: any[]; error?: string }> {
   try {
+    // Make sure we have a conversation ID
+    if (!conversationId) {
+      return {
+        success: false,
+        error: "Conversation ID is required"
+      };
+    }
+
+    // Use NextJS API Route as proxy
     const response = await fetch(
-      `https://api.coze.cn/v1/conversation/message/list?conversation_id=${conversationId}`,
+      `/api/conversations-history-proxy`,
       {
-        method: "GET",
+        method: "POST",
         headers: {
-          Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          conversation_id: conversationId
+        }),
       }
     );
-
-    const data = await response.json();
-
-    if (data.code === 0 && data.data) {
-      return { success: true, messages: data.data };
-    } else {
-      return { success: false, error: data.msg || "获取会话消息失败" };
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      return {
+        success: false,
+        error: `API Error: ${response.status} ${response.statusText}`
+      };
     }
-  } catch (error) {
+    
+    const result = await response.json();
+    console.log("Result ", result); 
+    // Check if the response has the expected structure
+    if (Array.isArray(result.messages)) {
+      return {
+        success: true,
+        messages: result.messages
+      };
+    } else {
+      return {
+        success: true,
+        messages: result // If the API returns the array directly
+      };
+    }
+  }
+  catch (error) {
     return {
       success: false,
-      error: `获取会话消息失败: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
+      error: `Failed to retrieve conversation history: ${error instanceof Error ? error.message : String(error)}`,
     };
   }
 }
