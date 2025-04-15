@@ -1,25 +1,41 @@
-'use client';
+"use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Send, Settings, RefreshCw, List } from 'lucide-react';
-import ConfigForm from './config-form';
-import ReactMarkdown from 'react-markdown';
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Loader2,
+  Send,
+  Settings,
+  RefreshCw,
+  List,
+  User,
+  Bot,
+} from "lucide-react";
+import ConfigForm from "./config-form";
+import ReactMarkdown from "react-markdown";
 
 import {
   sendMessageToCoze,
   generateUserId,
   retrieveConversationMessages,
   retrieveUserConversations,
-} from '@/lib/api';
+  initConversation,
+} from "@/lib/api";
 
 type Message = {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   id?: string;
+};
+
+type FollowUpMessage = {
+  role: "assistant";
+  type: "follow_up";
+  content: string;
+  content_type: string;
 };
 
 type Config = {
@@ -36,10 +52,13 @@ type UserConversation = {
 };
 
 export default function ChatInterface() {
-  const { t } = useTranslation('chat');
+  const { t } = useTranslation("chat");
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
+  const [followUpQuestions, setFollowUpQuestions] = useState<FollowUpMessage[]>(
+    []
+  );
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
@@ -51,14 +70,18 @@ export default function ChatInterface() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
+  // Assistant and user information
+  const assistantName = "AI Assistant";
+  const userName = "You";
+
   useEffect(() => {
-    const savedConfig = localStorage.getItem('cozeConfig');
+    const savedConfig = localStorage.getItem("cozeConfig");
     if (savedConfig) {
       try {
         const parsedConfig: Config = JSON.parse(savedConfig);
         if (!parsedConfig.userId) {
           parsedConfig.userId = generateUserId();
-          localStorage.setItem('cozeConfig', JSON.stringify(parsedConfig));
+          localStorage.setItem("cozeConfig", JSON.stringify(parsedConfig));
         }
         setConfig(parsedConfig);
 
@@ -69,14 +92,14 @@ export default function ChatInterface() {
           loadUserConversations(parsedConfig.userId);
         }
       } catch {
-        localStorage.removeItem('cozeConfig');
+        localStorage.removeItem("cozeConfig");
       }
     }
   }, []);
 
   const loadUserConversations = async (userId: string) => {
     // hard code userId for testing
-    userId = '66599eb8982ed93d46fc3dba';
+    userId = "66599eb8982ed93d46fc3dba";
     if (!userId) return;
 
     setIsLoadingConversations(true);
@@ -87,7 +110,7 @@ export default function ChatInterface() {
 
       if (result.success && result.data) {
         setConversations(result.data);
-        
+
         // If no active conversation is set but conversations exist, select the most recent one
         if (result.data.length > 0 && config && !config.conversationId) {
           // Sort by updated_at in descending order (assuming updated_at is in DD-MM-YYYY HH:MM format)
@@ -97,18 +120,21 @@ export default function ChatInterface() {
             const dateB = parseUpdatedAt(b.updated_at);
             return dateB.getTime() - dateA.getTime();
           });
-          
+
           const mostRecent = sorted[0];
-          const updatedConfig = { ...config, conversationId: mostRecent.conversation_id };
+          const updatedConfig = {
+            ...config,
+            conversationId: mostRecent.conversation_id,
+          };
           setConfig(updatedConfig);
-          localStorage.setItem('cozeConfig', JSON.stringify(updatedConfig));
+          localStorage.setItem("cozeConfig", JSON.stringify(updatedConfig));
           loadConversationHistory(updatedConfig);
         }
       } else if (result.error) {
-        setError(t('error.loadingConversations') + `: ${result.error}`);
+        setError(t("error.loadingConversations") + `: ${result.error}`);
       }
     } catch (error) {
-      setError(t('error.loadingConversationsRetry'));
+      setError(t("error.loadingConversationsRetry"));
     } finally {
       setIsLoadingConversations(false);
     }
@@ -118,12 +144,12 @@ export default function ChatInterface() {
   const parseUpdatedAt = (dateString: string) => {
     // Format is "DD-MM-YYYY HH:MM"
     try {
-      const [datePart, timePart] = dateString.split(' ');
-      const [day, month, year] = datePart.split('-');
-      const [hour, minute] = timePart.split(':');
-      
+      const [datePart, timePart] = dateString.split(" ");
+      const [day, month, year] = datePart.split("-");
+      const [hour, minute] = timePart.split(":");
+
       return new Date(
-        parseInt(year), 
+        parseInt(year),
         parseInt(month) - 1, // Month is 0-indexed in JS Date
         parseInt(day),
         parseInt(hour),
@@ -143,93 +169,121 @@ export default function ChatInterface() {
 
     try {
       const result = await retrieveConversationMessages(
-        currentConfig.conversationId,
-        currentConfig.apiKey
+        currentConfig.conversationId
       );
 
       if (result.success && result.messages) {
+        console.log("Loaded messages:", result.messages);
+
         const historyMessages: Message[] = result.messages
           .filter(
             (msg) =>
-              msg?.role === 'user' ||
-              (msg?.role === 'assistant' && msg?.type === 'answer')
+              msg?.role === "user" ||
+              (msg?.role === "assistant" && msg?.type === "answer")
           )
           .map((msg) => ({
-            id: msg?.id,
-            role: msg?.role as 'user' | 'assistant',
-            content: msg?.content || '',
-          }))
-          .sort((a, b) => {
-            const timeA =
-              result.messages?.find((m) => m?.id === a.id)?.created_at || 0;
-            const timeB =
-              result.messages?.find((m) => m?.id === b.id)?.created_at || 0;
-            return timeA - timeB;
-          });
+            id:
+              msg?.id ||
+              `msg_${Date.now()}_${Math.random().toString(36).substring(2)}`,
+            role: msg?.role as "user" | "assistant",
+            content: msg?.content || "",
+          }));
 
+        // Also get follow-up messages for the last assistant response
+        const followUps = result.messages
+          .filter(
+            (msg) => msg?.role === "assistant" && msg?.type === "follow_up"
+          )
+          .slice(-3);
+
+        console.log("Parsed messages:", historyMessages);
         setMessages(historyMessages);
+
+        if (followUps.length > 0) {
+          setFollowUpQuestions(followUps as FollowUpMessage[]);
+        } else {
+          setFollowUpQuestions([]);
+        }
       } else if (result.error) {
-        setError(t('error.loadingHistory') + `: ${result.error}`);
+        setError(t("error.loadingHistory") + `: ${result.error}`);
       }
-    } catch {
-      setError(t('error.loadingHistoryRetry'));
+    } catch (error) {
+      console.error("Exception in loading history:", error);
+      setError(t("error.loadingHistoryRetry"));
     } finally {
       setIsLoadingHistory(false);
     }
   };
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, followUpQuestions]);
 
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   }, [input]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || !config) {
-      if (!config) setConfigOpen(true); 
+    if (!input.trim() && !config) {
+      if (!config) setConfigOpen(true);
       return;
     }
-    const userMessage: Message = { role: 'user', content: input };
+
+    await sendMessage(input);
+  };
+
+  const handleFollowUpClick = async (question: string) => {
+    await sendMessage(question);
+    // Clear follow-up questions after clicking one
+    setFollowUpQuestions([]);
+  };
+
+  const sendMessage = async (message: string) => {
+    if (!message.trim() || !config) return;
+
+    const userMessage: Message = { role: "user", content: message };
     setMessages((prev) => [...prev, userMessage]);
-    setInput('');
+    setInput("");
     setIsLoading(true);
     setError(null);
+    // Clear existing follow-up questions when a new message is sent
+    setFollowUpQuestions([]);
 
     try {
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: t('thinking') },
+        { role: "assistant", content: t("thinking") },
       ]);
 
-      const { error, conversationId } = await sendMessageToCoze(
-        input,
-        config,
-        (chunk: string) => {
+      const { error, conversationId, followUpMessages } =
+        await sendMessageToCoze(message, config, (chunk: string) => {
           setMessages((prev) => {
             const updated = [...prev];
             const lastIndex = updated.length - 1;
             updated[lastIndex] = {
-              role: 'assistant',
+              role: "assistant",
               content:
-                updated[lastIndex].content === t('thinking')
+                updated[lastIndex].content === t("thinking")
                   ? chunk
                   : updated[lastIndex].content + chunk,
             };
             return updated;
           });
-        }
-      );
+        });
+
+      // If follow-up messages were received, set them
+      if (followUpMessages && followUpMessages.length > 0) {
+        setFollowUpQuestions(followUpMessages.slice(0, 3));
+      }
 
       if (conversationId && conversationId !== config.conversationId) {
         const updatedConfig = { ...config, conversationId };
         setConfig(updatedConfig);
-        localStorage.setItem('cozeConfig', JSON.stringify(updatedConfig));
+        localStorage.setItem("cozeConfig", JSON.stringify(updatedConfig));
         // Refresh conversation list when a new conversation is created
         if (config.userId) {
           loadUserConversations(config.userId);
@@ -242,20 +296,20 @@ export default function ChatInterface() {
           const updated = [...prev];
           const lastIndex = updated.length - 1;
           updated[lastIndex] = {
-            role: 'assistant',
-            content: `${t('error.prefix')}: ${error}`,
+            role: "assistant",
+            content: `${t("error.prefix")}: ${error}`,
           };
           return updated;
         });
       }
     } catch {
-      setError(t('error.sendMessage'));
+      setError(t("error.sendMessage"));
       setMessages((prev) => {
         const updated = [...prev];
         const lastIndex = updated.length - 1;
         updated[lastIndex] = {
-          role: 'assistant',
-          content: `${t('error.prefix')}: ${t('error.sendMessage')}`,
+          role: "assistant",
+          content: `${t("error.prefix")}: ${t("error.sendMessage")}`,
         };
         return updated;
       });
@@ -266,8 +320,8 @@ export default function ChatInterface() {
 
   const handleConfigSaved = (newConfig: Config) => {
     setConfig(newConfig);
-    localStorage.setItem('cozeConfig', JSON.stringify(newConfig));
-    
+    localStorage.setItem("cozeConfig", JSON.stringify(newConfig));
+
     if (newConfig.conversationId) {
       loadConversationHistory(newConfig);
     } else if (newConfig.userId) {
@@ -288,29 +342,40 @@ export default function ChatInterface() {
 
   const handleSelectConversation = (conversationId: string) => {
     if (!config) return;
-    
+
     const updatedConfig = { ...config, conversationId };
     setConfig(updatedConfig);
-    localStorage.setItem('cozeConfig', JSON.stringify(updatedConfig));
+    localStorage.setItem("cozeConfig", JSON.stringify(updatedConfig));
     loadConversationHistory(updatedConfig);
     setConversationsOpen(false);
   };
 
-  const handleNewConversation = () => {
+  const handleNewConversation = async () => {
     if (!config) return;
-    
-    const updatedConfig = { ...config };
-    delete updatedConfig.conversationId;
+    // hard code userId for testing
+    const userId = "66599eb8982ed93d46fc3dba";
+    const conversationResponse = await initConversation(userId);
+
+    // Ensure conversationId is extracted as a string
+    const conversationId = conversationResponse.success
+      ? conversationResponse.conversationId || ""
+      : "";
+
+    const updatedConfig = {
+      ...config,
+      conversationId: conversationId,
+    };
     setConfig(updatedConfig);
-    localStorage.setItem('cozeConfig', JSON.stringify(updatedConfig));
+    localStorage.setItem("cozeConfig", JSON.stringify(updatedConfig));
     setMessages([]);
+    setFollowUpQuestions([]);
     setConversationsOpen(false);
   };
 
   return (
     <div className="flex flex-col h-[90vh]">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
         <div className="flex items-center gap-2">
           {config?.userId && (
             <Button
@@ -318,10 +383,10 @@ export default function ChatInterface() {
               size="sm"
               onClick={() => setConversationsOpen(true)}
               disabled={isLoadingConversations}
-              title={t('conversations')}
+              title={t("conversations")}
             >
               <List className="h-4 w-4 mr-1" />
-              {t('conversations')}
+              {t("conversations")}
             </Button>
           )}
           {config?.conversationId && (
@@ -330,7 +395,7 @@ export default function ChatInterface() {
               size="sm"
               onClick={handleRefreshHistory}
               disabled={isLoadingHistory}
-              title={t('refresh')}
+              title={t("refresh")}
             >
               {isLoadingHistory ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -346,7 +411,7 @@ export default function ChatInterface() {
             className="flex items-center gap-1"
           >
             <Settings className="h-4 w-4" />
-            <span>{t('config')}</span>
+            <span>{t("config")}</span>
           </Button>
         </div>
       </div>
@@ -355,21 +420,19 @@ export default function ChatInterface() {
         {isLoadingHistory ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
-            <p className="text-gray-400">{t('loadingHistory')}</p>
+            <p className="text-gray-400">{t("loadingHistory")}</p>
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4">
             {!config ? (
               <>
-                <p className="text-gray-400 text-center">
-                  {t('pleaseConfig')}
-                </p>
+                <p className="text-gray-400 text-center">{t("pleaseConfig")}</p>
                 <Button onClick={() => setConfigOpen(true)}>
-                  {t('configAPI')}
+                  {t("configAPI")}
                 </Button>
               </>
             ) : (
-              <p className="text-gray-400">{t('startChat')}</p>
+              <p className="text-gray-400">{t("startChat")}</p>
             )}
           </div>
         ) : (
@@ -377,18 +440,29 @@ export default function ChatInterface() {
             <div
               key={index}
               className={`flex ${
-                message.role === 'user' ? 'justify-end' : 'justify-start'
+                message.role === "user" ? "justify-end" : "justify-start"
               }`}
             >
-              <div className="inline-block max-w-full sm:max-w-[80%]">
+              {message.role === "assistant" && (
+                <div className="flex-shrink-0 mr-2 mt-1">
+                  <div className="bg-purple-100 p-2 rounded-full">
+                    <Bot className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <div className="text-xs text-center mt-1 text-gray-500">
+                    {assistantName}
+                  </div>
+                </div>
+              )}
+
+              <div className="inline-block max-w-full sm:max-w-[75%]">
                 <div
                   className={`p-3 rounded-lg break-words whitespace-pre-wrap ${
-                    message.role === 'user'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 prose dark:prose-invert overflow-x-auto'
+                    message.role === "user"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-100 prose dark:prose-invert overflow-x-auto"
                   }`}
                 >
-                  {message.role === 'user' ? (
+                  {message.role === "user" ? (
                     message.content
                   ) : (
                     <ReactMarkdown
@@ -398,8 +472,8 @@ export default function ChatInterface() {
                           if (
                             !content ||
                             (Array.isArray(content) && content.length === 0) ||
-                            (typeof content === 'string' &&
-                              content.trim() === '')
+                            (typeof content === "string" &&
+                              content.trim() === "")
                           ) {
                             return null;
                           }
@@ -413,16 +487,49 @@ export default function ChatInterface() {
                       }}
                     >
                       {message.content
-                        .split('\n')
+                        .split("\n")
                         .filter((line) => line.trim())
-                        .join('\n')}
+                        .join("\n")}
                     </ReactMarkdown>
                   )}
                 </div>
               </div>
+
+              {message.role === "user" && (
+                <div className="flex-shrink-0 ml-2 mt-1">
+                  <div className="bg-blue-100 p-2 rounded-full">
+                    <User className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div className="text-xs text-center mt-1 text-gray-500">
+                    {userName}
+                  </div>
+                </div>
+              )}
             </div>
           ))
         )}
+
+        {/* Follow-up questions */}
+        {followUpQuestions.length > 0 && (
+          <div className="flex flex-col space-y-2 ml-12 mt-2">
+            <div className="text-sm text-gray-500 mb-1">
+              Suggested follow-up questions:
+            </div>
+            {followUpQuestions.map((question, idx) => (
+              <Button
+                key={idx}
+                variant="outline"
+                size="sm"
+                className="text-left justify-start px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm"
+                onClick={() => handleFollowUpClick(question.content)}
+                disabled={isLoading}
+              >
+                {question.content}
+              </Button>
+            ))}
+          </div>
+        )}
+
         {error && (
           <div className="bg-red-50 p-3 rounded-md text-red-600 text-sm">
             {error}
@@ -437,12 +544,12 @@ export default function ChatInterface() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={
-            config ? t('inputPlaceholder') : t('pleaseConfigPlaceholder')
+            config ? t("inputPlaceholder") : t("pleaseConfigPlaceholder")
           }
           className="w-full resize-none pr-12 min-h-[64px] max-h-[150px] py-3"
           disabled={isLoading || isLoadingHistory || !config}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
+            if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
               handleSubmit(e);
             }
@@ -468,40 +575,37 @@ export default function ChatInterface() {
         onConfigSaved={handleConfigSaved}
         initialConfig={config || undefined}
       />
-      
+
       {/* Conversations Dialog */}
       {conversationsOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg w-full max-w-md max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">{t('conversations')}</h2>
+              <h2 className="text-xl font-semibold">{t("conversations")}</h2>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setConversationsOpen(false)}
               >
-                {t('close')}
+                {t("close")}
               </Button>
             </div>
-            
+
             {isLoadingConversations ? (
               <div className="flex items-center justify-center p-8">
                 <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
-                <p>{t('loadingConversations')}</p>
+                <p>{t("loadingConversations")}</p>
               </div>
             ) : (
               <>
-                <Button
-                  className="w-full mb-2"
-                  onClick={handleNewConversation}
-                >
-                  {t('newConversation')}
+                <Button className="w-full mb-2" onClick={handleNewConversation}>
+                  {t("newConversation")}
                 </Button>
-                
+
                 <div className="space-y-2">
                   {conversations.length === 0 ? (
                     <p className="text-center text-gray-500 p-4">
-                      {t('noConversations')}
+                      {t("noConversations")}
                     </p>
                   ) : (
                     conversations
@@ -515,12 +619,16 @@ export default function ChatInterface() {
                           key={conv.conversation_id}
                           className={`p-3 rounded-md cursor-pointer ${
                             config?.conversationId === conv.conversation_id
-                              ? 'bg-blue-100 dark:bg-blue-900'
-                              : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600'
+                              ? "bg-blue-100 dark:bg-blue-900"
+                              : "bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
                           }`}
-                          onClick={() => handleSelectConversation(conv.conversation_id)}
+                          onClick={() =>
+                            handleSelectConversation(conv.conversation_id)
+                          }
                         >
-                          <p className="font-medium truncate">{conv.title || t('untitledConversation')}</p>
+                          <p className="font-medium truncate">
+                            {conv.title || t("untitledConversation")}
+                          </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
                             {conv.updated_at}
                           </p>

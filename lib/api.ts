@@ -1,12 +1,41 @@
 type CozeResponse = {
   content?: string;
   error?: string;
+  followUpMessages?: any[];
 };
 
 type CozeConfig = {
-  userId?: string,
+  userId?: string;
   conversationId?: string;
 };
+
+export async function initConversation(
+  userId: string
+): Promise<{ success: boolean; conversationId?: string; error?: string }> {
+  try {
+    const response = await fetch(`/api/conversations-init-proxy`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId,
+      }),
+    });
+
+    const result = await response.json();
+
+    //proxy already formats the response
+    return result;
+  } catch (error) {
+    return {
+      success: false,
+      error: `Failed to request conversations: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    };
+  }
+}
 
 export async function sendMessageToCoze(
   message: string,
@@ -14,7 +43,6 @@ export async function sendMessageToCoze(
   onChunk?: (chunk: string) => void
 ): Promise<CozeResponse & { conversationId?: string }> {
   try {
-    
     const { conversationId } = config;
     // hard code userId for testing
     const userId = "66599eb8982ed93d46fc3dba";
@@ -30,31 +58,31 @@ export async function sendMessageToCoze(
     const requestBody = {
       userId,
       message,
-      conversationId
+      conversationId,
     };
 
     // Gọi API proxy
     const response = await fetch(url, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
     });
-    
+
     console.log("Response ", response);
     if (!response.ok) {
       const errorText = await response.text();
       return {
-        error: `API Error: ${response.status} ${response.statusText}`
+        error: `API Error: ${response.status} ${response.statusText}`,
       };
     }
 
     // Handle streaming responses
-    if (response.headers.get('content-type')?.includes('text/event-stream')) {
+    if (response.headers.get("content-type")?.includes("text/event-stream")) {
       let fullContent = "";
       let extractedConversationId = conversationId;
-
+      let followUpMessages: any[] = [];
       const reader = response.body?.getReader();
       if (!reader) {
         return { error: "Failed to read response stream" };
@@ -68,34 +96,46 @@ export async function sendMessageToCoze(
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
-        
+
         // Process each line in the chunk
         const lines = chunk.split("\n");
-        
+
         for (const line of lines) {
           if (!line.trim() || !line.startsWith("data:")) continue;
-          
+
           const dataStr = line.substring(5).trim();
-          
+
           // Skip "[DONE]" message
           if (dataStr === "[DONE]") continue;
-          
+
           try {
             const data = JSON.parse(dataStr);
-            
+
             // Check if it's an error message
             if (data.error) {
-              return { error: `API Error: ${data.error.message || JSON.stringify(data.error)}` };
+              return {
+                error: `API Error: ${
+                  data.error.message || JSON.stringify(data.error)
+                }`,
+              };
             }
-            
+            // Handle follow-up messages
+            if (
+              data.follow_up_messages &&
+              Array.isArray(data.follow_up_messages)
+            ) {
+              followUpMessages = data.follow_up_messages;
+              continue;
+            }
+
             // Handle completion chunks
             if (data.choices && data.choices.length > 0) {
               const delta = data.choices[0].delta;
-              
+
               // If this is a content delta
               if (delta && delta.content) {
                 fullContent += delta.content;
-                
+
                 // Call the onChunk callback if provided
                 if (onChunk && typeof onChunk === "function") {
                   onChunk(delta.content);
@@ -111,29 +151,41 @@ export async function sendMessageToCoze(
 
       return {
         content: fullContent,
-        conversationId: extractedConversationId
+        followUpMessages: followUpMessages,
+        conversationId: extractedConversationId,
       };
     } else {
       // Handle JSON response (non-streaming)
       const data = await response.json();
-      
+
       if (data.error) {
-        return { error: `API Error: ${data.error.message || JSON.stringify(data.error)}` };
+        return {
+          error: `API Error: ${
+            data.error.message || JSON.stringify(data.error)
+          }`,
+        };
       }
-      
+
+      const followUpMessages = data.messages?.filter(
+        (msg: any) => msg.type === "follow_up"
+      );
+
       // Extract the assistant's message
       if (data.choices && data.choices.length > 0 && data.choices[0].message) {
         return {
           content: data.choices[0].message.content,
-          conversationId: conversationId
+          followUpMessages: followUpMessages || [],
+          conversationId: conversationId,
         };
       }
-      
+
       return { error: "Unexpected response format" };
     }
   } catch (error) {
     return {
-      error: `Failed to send message: ${error instanceof Error ? error.message : String(error)}`
+      error: `Failed to send message: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
     };
   }
 }
@@ -141,85 +193,85 @@ export async function retrieveUserConversations(
   userId: string
 ): Promise<{ success: boolean; data?: any; error?: string }> {
   try {
-    const response = await fetch(
-      `/api/conversations-proxy`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: userId,
-        }),
-      }
-    );
-    
+    const response = await fetch(`/api/conversations-proxy`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId: userId,
+      }),
+    });
+
     const result = await response.json();
-    
+
     //proxy already formats the response
     return result;
-  }
-  catch (error) {
+  } catch (error) {
     return {
       success: false,
-      error: `Failed to request conversations: ${error instanceof Error ? error.message : String(error)}`,
+      error: `Failed to request conversations: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
     };
   }
 }
-
 export async function retrieveConversationMessages(
   conversationId: string
 ): Promise<{ success: boolean; messages?: any[]; error?: string }> {
   try {
-    // Make sure we have a conversation ID
     if (!conversationId) {
       return {
         success: false,
-        error: "Conversation ID is required"
+        error: "Conversation ID is required",
       };
     }
 
-    // Use NextJS API Route as proxy
-    const response = await fetch(
-      `/api/conversations-history-proxy`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          conversation_id: conversationId
-        }),
-      }
-    );
-    
+    const response = await fetch(`/api/conversations-history-proxy`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        conversation_id: conversationId,
+      }),
+    });
+
     if (!response.ok) {
       const errorText = await response.text();
       return {
         success: false,
-        error: `API Error: ${response.status} ${response.statusText}`
+        error: `API Error: ${response.status} ${response.statusText}`,
       };
     }
-    
+
     const result = await response.json();
-    console.log("Result ", result); 
-    // Check if the response has the expected structure
-    if (Array.isArray(result.messages)) {
+    console.log("Response ", result);
+    // Xử lý response có định dạng {"code": 200, "messages": [...]}
+    if (result.success && Array.isArray(result.data)) {
       return {
         success: true,
-        messages: result.messages
+        messages: result.data,
+      };
+    } else if (Array.isArray(result)) {
+      // Trường hợp API trả về mảng trực tiếp
+      return {
+        success: true,
+        messages: result,
       };
     } else {
+      console.error("Unexpected API response format:", result);
       return {
-        success: true,
-        messages: result // If the API returns the array directly
+        success: false,
+        error: "Unexpected response format",
       };
     }
-  }
-  catch (error) {
+  } catch (error) {
     return {
       success: false,
-      error: `Failed to retrieve conversation history: ${error instanceof Error ? error.message : String(error)}`,
+      error: `Failed to retrieve conversation history: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
     };
   }
 }
