@@ -1,6 +1,7 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  output: 'export',
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
+  // output: 'export',
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -15,6 +16,14 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: '/api/:path*',
+  //       destination: `${process.env.NEXT_PUBLIC_API_URL}/v1/api/:path*`,
+  //     },
+  //   ];
+  // },
 };
 
 export default nextConfig;
