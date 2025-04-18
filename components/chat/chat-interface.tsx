@@ -2,7 +2,8 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-
+import HeaderHome from '@/components/Homepage/Header';
+import NavBarHome from '@/components/Homepage/Navbar';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -13,6 +14,7 @@ import {
   List,
   User,
   Bot,
+  X,
 } from "lucide-react";
 import ConfigForm from "./config-form";
 import ReactMarkdown from "react-markdown";
@@ -373,25 +375,27 @@ export default function ChatInterface() {
   };
 
   return (
-    <div className="flex flex-col h-[90vh]">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">{t("title")}</h1>
-        <div className="flex items-center gap-2">
+    <div className="rounded-lg shadow-lg border max-w-2xl mx-auto">
+      {/* Header */}
+      <div className="flex justify-between items-center p-3 border-b">
+        <div className="flex items-center">
+          <h2 className="text-lg font-medium">{t("title")}</h2>
+        </div>
+        <div className="flex items-center space-x-1">
           {config?.userId && (
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => setConversationsOpen(true)}
               disabled={isLoadingConversations}
               title={t("conversations")}
             >
-              <List className="h-4 w-4 mr-1" />
-              {t("conversations")}
+              <List className="h-4 w-4" />
             </Button>
           )}
           {config?.conversationId && (
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={handleRefreshHistory}
               disabled={isLoadingHistory}
@@ -408,58 +412,55 @@ export default function ChatInterface() {
             variant="ghost"
             size="sm"
             onClick={() => setConfigOpen(true)}
-            className="flex items-center gap-1"
+            title={t("config")}
           >
             <Settings className="h-4 w-4" />
-            <span>{t("config")}</span>
           </Button>
         </div>
       </div>
-
-      <div className="flex-1 overflow-y-auto mb-4 p-4 space-y-3 rounded-md border">
+  
+      {/* Chat Messages */}
+      <div className="h-96 overflow-y-auto p-3 space-y-2">
         {isLoadingHistory ? (
           <div className="flex items-center justify-center h-full">
-            <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
-            <p className="text-gray-400">{t("loadingHistory")}</p>
+            <Loader2 className="h-5 w-5 animate-spin text-primary mr-2" />
+            <p className="text-sm text-gray-400">{t("loadingHistory")}</p>
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-4">
+          <div className="flex flex-col items-center justify-center h-full gap-2">
             {!config ? (
               <>
-                <p className="text-gray-400 text-center">{t("pleaseConfig")}</p>
-                <Button onClick={() => setConfigOpen(true)}>
+                <p className="text-sm text-gray-400 text-center">{t("pleaseConfig")}</p>
+                <Button size="sm" onClick={() => setConfigOpen(true)}>
                   {t("configAPI")}
                 </Button>
               </>
             ) : (
-              <p className="text-gray-400">{t("startChat")}</p>
+              <p className="text-sm text-gray-400">{t("startChat")}</p>
             )}
           </div>
         ) : (
           messages.map((message, index) => (
             <div
               key={index}
-              className={`flex ${
+              className={`flex items-start ${
                 message.role === "user" ? "justify-end" : "justify-start"
               }`}
             >
               {message.role === "assistant" && (
-                <div className="flex-shrink-0 mr-2 mt-1">
-                  <div className="bg-purple-100 p-2 rounded-full">
-                    <Bot className="h-6 w-6 text-purple-600" />
-                  </div>
-                  <div className="text-xs text-center mt-1 text-gray-500">
-                    {assistantName}
+                <div className="flex-shrink-0 mr-2">
+                  <div className="bg-purple-100 p-1 rounded-full">
+                    <Bot className="h-4 w-4 text-purple-600" />
                   </div>
                 </div>
               )}
-
-              <div className="inline-block max-w-full sm:max-w-[75%]">
+  
+              <div className="inline-block max-w-[70%]">
                 <div
-                  className={`p-3 rounded-lg break-words whitespace-pre-wrap ${
+                  className={`p-2 rounded-lg text-sm break-words ${
                     message.role === "user"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-100 prose dark:prose-invert overflow-x-auto"
+                      ? "bg-blue-500 text-white rounded-tr-none"
+                      : "bg-gray-100 rounded-tl-none"
                   }`}
                 >
                   {message.role === "user" ? (
@@ -472,16 +473,12 @@ export default function ChatInterface() {
                           if (
                             !content ||
                             (Array.isArray(content) && content.length === 0) ||
-                            (typeof content === "string" &&
-                              content.trim() === "")
+                            (typeof content === "string" && content.trim() === "")
                           ) {
                             return null;
                           }
                           return (
-                            <p
-                              className="my-1 first:mt-0 last:mb-0"
-                              {...props}
-                            />
+                            <p className="my-1 first:mt-0 last:mb-0" {...props} />
                           );
                         },
                       }}
@@ -493,34 +490,31 @@ export default function ChatInterface() {
                     </ReactMarkdown>
                   )}
                 </div>
+                <div className="text-xs text-gray-500 mt-1 mx-1">
+                  {message.role === "user" ? userName : assistantName}
+                </div>
               </div>
-
+  
               {message.role === "user" && (
-                <div className="flex-shrink-0 ml-2 mt-1">
-                  <div className="bg-blue-100 p-2 rounded-full">
-                    <User className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className="text-xs text-center mt-1 text-gray-500">
-                    {userName}
+                <div className="flex-shrink-0 ml-2">
+                  <div className="bg-blue-100 p-1 rounded-full">
+                    <User className="h-4 w-4 text-blue-600" />
                   </div>
                 </div>
               )}
             </div>
           ))
         )}
-
+  
         {/* Follow-up questions */}
         {followUpQuestions.length > 0 && (
-          <div className="flex flex-col space-y-2 ml-12 mt-2">
-            <div className="text-sm text-gray-500 mb-1">
-              Suggested follow-up questions:
-            </div>
+          <div className="flex flex-wrap gap-1 mt-2">
             {followUpQuestions.map((question, idx) => (
               <Button
                 key={idx}
                 variant="outline"
                 size="sm"
-                className="text-left justify-start px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm"
+                className="text-xs py-1 px-2"
                 onClick={() => handleFollowUpClick(question.content)}
                 disabled={isLoading}
               >
@@ -529,82 +523,88 @@ export default function ChatInterface() {
             ))}
           </div>
         )}
-
+  
         {error && (
-          <div className="bg-red-50 p-3 rounded-md text-red-600 text-sm">
+          <div className="bg-red-50 p-2 rounded-md text-red-600 text-xs">
             {error}
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
-
-      <form onSubmit={handleSubmit} className="relative">
-        <Textarea
-          ref={textareaRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={
-            config ? t("inputPlaceholder") : t("pleaseConfigPlaceholder")
-          }
-          className="w-full resize-none pr-12 min-h-[64px] max-h-[150px] py-3"
-          disabled={isLoading || isLoadingHistory || !config}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSubmit(e);
-            }
-          }}
-        />
-        <Button
-          type="submit"
-          size="icon"
-          className="absolute bottom-3 right-3"
-          disabled={isLoading || isLoadingHistory || !input.trim() || !config}
-        >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Send className="h-4 w-4" />
-          )}
-        </Button>
+  
+      {/* Input Area */}
+      <form onSubmit={handleSubmit} className="border-t p-2">
+        <div className="relative">
+          <Textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={config ? t("inputPlaceholder") : t("pleaseConfigPlaceholder")}
+            className="w-full resize-none pr-10 min-h-[40px] max-h-[100px] py-2 text-sm"
+            disabled={isLoading || isLoadingHistory || !config}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSubmit(e);
+              }
+            }}
+          />
+          <Button
+            type="submit"
+            size="sm"
+            className="absolute bottom-1 right-1 h-8 w-8 p-0"
+            disabled={isLoading || isLoadingHistory || !input.trim() || !config}
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
       </form>
-
+  
+      {/* Config Modal */}
       <ConfigForm
         open={configOpen}
         onOpenChange={setConfigOpen}
         onConfigSaved={handleConfigSaved}
         initialConfig={config || undefined}
       />
-
+  
       {/* Conversations Dialog */}
       {conversationsOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg w-full max-w-md max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">{t("conversations")}</h2>
+          <div className="bg-white dark:bg-gray-800 p-3 rounded-lg w-full max-w-xs max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-base font-medium">{t("conversations")}</h2>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setConversationsOpen(false)}
               >
-                {t("close")}
+                <X className="h-4 w-4" />
               </Button>
             </div>
-
+  
             {isLoadingConversations ? (
-              <div className="flex items-center justify-center p-8">
-                <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
-                <p>{t("loadingConversations")}</p>
+              <div className="flex items-center justify-center p-4">
+                <Loader2 className="h-5 w-5 animate-spin text-primary mr-2" />
+                <p className="text-sm">{t("loadingConversations")}</p>
               </div>
             ) : (
               <>
-                <Button className="w-full mb-2" onClick={handleNewConversation}>
+                <Button 
+                  size="sm" 
+                  className="w-full mb-2" 
+                  onClick={handleNewConversation}
+                >
                   {t("newConversation")}
                 </Button>
-
-                <div className="space-y-2">
+  
+                <div className="space-y-1">
                   {conversations.length === 0 ? (
-                    <p className="text-center text-gray-500 p-4">
+                    <p className="text-center text-gray-500 text-sm p-2">
                       {t("noConversations")}
                     </p>
                   ) : (
@@ -617,16 +617,14 @@ export default function ChatInterface() {
                       .map((conv) => (
                         <div
                           key={conv.conversation_id}
-                          className={`p-3 rounded-md cursor-pointer ${
+                          className={`p-2 rounded-md cursor-pointer text-sm ${
                             config?.conversationId === conv.conversation_id
                               ? "bg-blue-100 dark:bg-blue-900"
                               : "bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
                           }`}
-                          onClick={() =>
-                            handleSelectConversation(conv.conversation_id)
-                          }
+                          onClick={() => handleSelectConversation(conv.conversation_id)}
                         >
-                          <p className="font-medium truncate">
+                          <p className="font-medium truncate text-sm">
                             {conv.title || t("untitledConversation")}
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">

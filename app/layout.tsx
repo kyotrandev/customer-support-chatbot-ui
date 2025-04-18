@@ -1,20 +1,14 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
 import "./globals.css";
+import { Toaster } from "sonner";
+import { SessionProvider } from "next-auth/react";
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Trợ thủ sen - Chăm sóc khách hàng",
-  description: "Trợ thủ sen - Chuyên viên chăm sóc khách hàng",
-  generator: "v0.dev",
-  icons: {
-    icon: "/favicon.ico",
-  },
-};
-
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  title: "Trợ thủ Sen - Chuyên viên tư vấn sản phẩm",
+  description: "Trợ thủ Sen - Chuyên viên tư vấn sản phẩm, chiến thần chốt đơn",
 };
 
 export default function RootLayout({
@@ -23,7 +17,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={inter.className}>
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link
@@ -45,7 +39,26 @@ export default function RootLayout({
         />
         <link rel="manifest" href="/site.webmanifest" />
       </head>
-      <body>{children}</body>
+      <body className="antialiased">
+        <SessionProvider
+          refetchOnWindowFocus={false}
+          refetchInterval={0}
+        >
+          {children}
+        </SessionProvider>
+        <Toaster 
+          position="top-right" 
+          toastOptions={{
+            style: { 
+              background: 'rgba(255,255,255,0.9)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              color: '#333',
+              fontWeight: 500
+            }
+          }}
+        />
+      </body>
     </html>
   );
 }
