@@ -2,8 +2,6 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import HeaderHome from '@/components/Homepage/Header';
-import NavBarHome from '@/components/Homepage/Navbar';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -52,8 +50,11 @@ type UserConversation = {
   title: string;
   updated_at: string;
 };
+interface ChatInterfaceProps {
+  onClose?: () => void;
+}
 
-export default function ChatInterface() {
+export default function ChatInterface({ onClose }: ChatInterfaceProps) {
   const { t } = useTranslation("chat");
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -175,8 +176,6 @@ export default function ChatInterface() {
       );
 
       if (result.success && result.messages) {
-        console.log("Loaded messages:", result.messages);
-
         const historyMessages: Message[] = result.messages
           .filter(
             (msg) =>
@@ -198,7 +197,6 @@ export default function ChatInterface() {
           )
           .slice(-3);
 
-        console.log("Parsed messages:", historyMessages);
         setMessages(historyMessages);
 
         if (followUps.length > 0) {
@@ -210,7 +208,6 @@ export default function ChatInterface() {
         setError(t("error.loadingHistory") + `: ${result.error}`);
       }
     } catch (error) {
-      console.error("Exception in loading history:", error);
       setError(t("error.loadingHistoryRetry"));
     } finally {
       setIsLoadingHistory(false);
@@ -218,8 +215,11 @@ export default function ChatInterface() {
   };
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, followUpQuestions]);
+    // Only auto-scroll on new messages or when loading is complete
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages.length, isLoading, followUpQuestions]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -375,13 +375,14 @@ export default function ChatInterface() {
   };
 
   return (
-    <div className="rounded-lg shadow-lg border max-w-2xl mx-auto">
-      {/* Header */}
-      <div className="flex justify-between items-center p-3 border-b">
+    <div className="flex flex-col h-full w-full max-h-[85vh]">
+      <div className="flex-shrink-0 flex justify-between items-center p-4 border-b dark:border-zinc-800">
         <div className="flex items-center">
-          <h2 className="text-lg font-medium">{t("title")}</h2>
+          <h2 className="text-lg font-medium">
+            {"Trợ thủ Sen - Chuyên viên chăm sóc khách hàng"}
+          </h2>
         </div>
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-2">
           {config?.userId && (
             <Button
               variant="ghost"
@@ -389,6 +390,7 @@ export default function ChatInterface() {
               onClick={() => setConversationsOpen(true)}
               disabled={isLoadingConversations}
               title={t("conversations")}
+              className="h-8 w-8 p-0 rounded-full"
             >
               <List className="h-4 w-4" />
             </Button>
@@ -400,6 +402,7 @@ export default function ChatInterface() {
               onClick={handleRefreshHistory}
               disabled={isLoadingHistory}
               title={t("refresh")}
+              className="h-8 w-8 p-0 rounded-full"
             >
               {isLoadingHistory ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -413,30 +416,48 @@ export default function ChatInterface() {
             size="sm"
             onClick={() => setConfigOpen(true)}
             title={t("config")}
+            className="h-8 w-8 p-0 rounded-full"
           >
             <Settings className="h-4 w-4" />
           </Button>
+          {/* Thêm nút X nếu onClose được truyền vào */}
+          {onClose && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              title="Close"
+              className="h-8 w-8 p-0 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
-  
-      {/* Chat Messages */}
-      <div className="h-96 overflow-y-auto p-3 space-y-2">
+
+      <div
+        className="flex-1 overflow-y-auto p-4 space-y-3"
+        style={{ minHeight: "0" }}
+      >
+        {/* Phần nội dung tin nhắn giữ nguyên */}
         {isLoadingHistory ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="h-5 w-5 animate-spin text-primary mr-2" />
-            <p className="text-sm text-gray-400">{t("loadingHistory")}</p>
+            <p className="text-sm text-gray-500">{t("loadingHistory")}</p>
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-2">
+          <div className="flex flex-col items-center justify-center h-full gap-3">
             {!config ? (
               <>
-                <p className="text-sm text-gray-400 text-center">{t("pleaseConfig")}</p>
+                <p className="text-sm text-gray-500 text-center">
+                  {t("pleaseConfig")}
+                </p>
                 <Button size="sm" onClick={() => setConfigOpen(true)}>
                   {t("configAPI")}
                 </Button>
               </>
             ) : (
-              <p className="text-sm text-gray-400">{t("startChat")}</p>
+              <p className="text-sm text-gray-500">{t("startChat")}</p>
             )}
           </div>
         ) : (
@@ -449,18 +470,18 @@ export default function ChatInterface() {
             >
               {message.role === "assistant" && (
                 <div className="flex-shrink-0 mr-2">
-                  <div className="bg-purple-100 p-1 rounded-full">
-                    <Bot className="h-4 w-4 text-purple-600" />
+                  <div className="bg-purple-100 dark:bg-purple-900 p-1.5 rounded-full">
+                    <Bot className="h-4 w-4 text-purple-600 dark:text-purple-300" />
                   </div>
                 </div>
               )}
-  
-              <div className="inline-block max-w-[70%]">
+
+              <div className="inline-block max-w-[75%]">
                 <div
-                  className={`p-2 rounded-lg text-sm break-words ${
+                  className={`p-3 rounded-2xl text-sm break-words ${
                     message.role === "user"
-                      ? "bg-blue-500 text-white rounded-tr-none"
-                      : "bg-gray-100 rounded-tl-none"
+                      ? "bg-blue-500 text-white rounded-br-none"
+                      : "bg-gray-100 dark:bg-zinc-800 rounded-bl-none"
                   }`}
                 >
                   {message.role === "user" ? (
@@ -473,12 +494,16 @@ export default function ChatInterface() {
                           if (
                             !content ||
                             (Array.isArray(content) && content.length === 0) ||
-                            (typeof content === "string" && content.trim() === "")
+                            (typeof content === "string" &&
+                              content.trim() === "")
                           ) {
                             return null;
                           }
                           return (
-                            <p className="my-1 first:mt-0 last:mb-0" {...props} />
+                            <p
+                              className="my-1.5 first:mt-0 last:mb-0"
+                              {...props}
+                            />
                           );
                         },
                       }}
@@ -490,31 +515,31 @@ export default function ChatInterface() {
                     </ReactMarkdown>
                   )}
                 </div>
-                <div className="text-xs text-gray-500 mt-1 mx-1">
+                <div className="text-xs text-gray-500 mt-1 mx-1.5">
                   {message.role === "user" ? userName : assistantName}
                 </div>
               </div>
-  
+
               {message.role === "user" && (
                 <div className="flex-shrink-0 ml-2">
-                  <div className="bg-blue-100 p-1 rounded-full">
-                    <User className="h-4 w-4 text-blue-600" />
+                  <div className="bg-blue-100 dark:bg-blue-900 p-1.5 rounded-full">
+                    <User className="h-4 w-4 text-blue-600 dark:text-blue-300" />
                   </div>
                 </div>
               )}
             </div>
           ))
         )}
-  
+
         {/* Follow-up questions */}
         {followUpQuestions.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
+          <div className="flex flex-wrap gap-2 mt-3">
             {followUpQuestions.map((question, idx) => (
               <Button
                 key={idx}
                 variant="outline"
                 size="sm"
-                className="text-xs py-1 px-2"
+                className="text-xs py-1.5 px-3 rounded-full"
                 onClick={() => handleFollowUpClick(question.content)}
                 disabled={isLoading}
               >
@@ -523,47 +548,53 @@ export default function ChatInterface() {
             ))}
           </div>
         )}
-  
+
         {error && (
-          <div className="bg-red-50 p-2 rounded-md text-red-600 text-xs">
+          <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg text-red-600 dark:text-red-400 text-xs">
             {error}
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
-  
-      {/* Input Area */}
-      <form onSubmit={handleSubmit} className="border-t p-2">
-        <div className="relative">
-          <Textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={config ? t("inputPlaceholder") : t("pleaseConfigPlaceholder")}
-            className="w-full resize-none pr-10 min-h-[40px] max-h-[100px] py-2 text-sm"
-            disabled={isLoading || isLoadingHistory || !config}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit(e);
+
+      {/* Input Area - Fixed position at bottom */}
+      <div className="flex-shrink-0 border-t dark:border-zinc-800 p-4">
+        <form onSubmit={handleSubmit}>
+          <div className="relative">
+            <Textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={
+                config ? t("inputPlaceholder") : t("pleaseConfigPlaceholder")
               }
-            }}
-          />
-          <Button
-            type="submit"
-            size="sm"
-            className="absolute bottom-1 right-1 h-8 w-8 p-0"
-            disabled={isLoading || isLoadingHistory || !input.trim() || !config}
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
-      </form>
-  
+              className="w-full resize-none pr-12 min-h-[44px] max-h-[120px] py-3 text-sm rounded-full px-4 focus-visible:ring-blue-500 dark:bg-zinc-800 dark:focus-visible:ring-blue-600"
+              disabled={isLoading || isLoadingHistory || !config}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
+            />
+            <Button
+              type="submit"
+              size="sm"
+              className="absolute bottom-1.5 right-1.5 h-9 w-9 p-0 rounded-full"
+              disabled={
+                isLoading || isLoadingHistory || !input.trim() || !config
+              }
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
+
       {/* Config Modal */}
       <ConfigForm
         open={configOpen}
@@ -571,22 +602,23 @@ export default function ChatInterface() {
         onConfigSaved={handleConfigSaved}
         initialConfig={config || undefined}
       />
-  
+
       {/* Conversations Dialog */}
       {conversationsOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-3 rounded-lg w-full max-w-xs max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-2">
+          <div className="bg-white dark:bg-zinc-800 p-4 rounded-xl w-full max-w-xs max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-3">
               <h2 className="text-base font-medium">{t("conversations")}</h2>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setConversationsOpen(false)}
+                className="h-8 w-8 p-0 rounded-full"
               >
                 <X className="h-4 w-4" />
               </Button>
             </div>
-  
+
             {isLoadingConversations ? (
               <div className="flex items-center justify-center p-4">
                 <Loader2 className="h-5 w-5 animate-spin text-primary mr-2" />
@@ -594,17 +626,17 @@ export default function ChatInterface() {
               </div>
             ) : (
               <>
-                <Button 
-                  size="sm" 
-                  className="w-full mb-2" 
+                <Button
+                  size="sm"
+                  className="w-full mb-3 rounded-lg"
                   onClick={handleNewConversation}
                 >
                   {t("newConversation")}
                 </Button>
-  
-                <div className="space-y-1">
+
+                <div className="space-y-2">
                   {conversations.length === 0 ? (
-                    <p className="text-center text-gray-500 text-sm p-2">
+                    <p className="text-center text-gray-500 text-sm p-3">
                       {t("noConversations")}
                     </p>
                   ) : (
@@ -617,17 +649,19 @@ export default function ChatInterface() {
                       .map((conv) => (
                         <div
                           key={conv.conversation_id}
-                          className={`p-2 rounded-md cursor-pointer text-sm ${
+                          className={`p-3 rounded-lg cursor-pointer text-sm ${
                             config?.conversationId === conv.conversation_id
-                              ? "bg-blue-100 dark:bg-blue-900"
-                              : "bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
+                              ? "bg-blue-100 dark:bg-blue-900/30"
+                              : "bg-gray-100 dark:bg-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-600"
                           }`}
-                          onClick={() => handleSelectConversation(conv.conversation_id)}
+                          onClick={() =>
+                            handleSelectConversation(conv.conversation_id)
+                          }
                         >
                           <p className="font-medium truncate text-sm">
                             {conv.title || t("untitledConversation")}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             {conv.updated_at}
                           </p>
                         </div>
