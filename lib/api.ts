@@ -427,16 +427,17 @@ export async function initConversation(
 
 export async function sendMessageToCoze(
   message: string,
+  id: string,
   config: CozeConfig,
   onChunk?: (chunk: string) => void
 ): Promise<CozeResponse & { conversationId?: string }> {
   try {
     const { conversationId } = config;
     // hard code userId for testing
-    const userId = "66599eb8982ed93d46fc3dba";
+    let userId = id;
 
     if (!userId) {
-      return { error: "User ID is required" };
+      userId = "66599eb8982ed93d46fc3dba"
     }
 
     // Sử dụng NextJS API Route làm proxy thay vì gọi trực tiếp đến backend

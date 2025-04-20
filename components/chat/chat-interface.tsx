@@ -31,9 +31,8 @@ type FollowUpMessage = {
 };
 
 type Config = {
-  apiKey: string;
-  botId: string;
-  userId: string;
+  botId?: string;
+  userId?: string;
   conversationId?: string;
 };
 
@@ -44,10 +43,13 @@ type UserConversation = {
 };
 interface ChatInterfaceProps {
   onClose?: () => void;
-  session?: Session | null;
+  session: Session | null;
 }
 
-export default function ChatInterface({ onClose, session }: ChatInterfaceProps) {
+export default function ChatInterface({
+  onClose,
+  session,
+}: ChatInterfaceProps) {
   const { t } = useTranslation("chat");
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -66,9 +68,9 @@ export default function ChatInterface({ onClose, session }: ChatInterfaceProps) 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // Assistant and user information
-  const assistantName = "Sen Assistant";
-  const userId = session?.user?.id || "66599eb8982ed93d46fc3dba";
+  // hard code userId for testing
+  const userId = session?.user.id || "664b289b7ced2282fcf02c3a";
+  console.log("User ID:", userId);
 
   useEffect(() => {
     const savedConfig = localStorage.getItem("cozeConfig");
@@ -85,7 +87,7 @@ export default function ChatInterface({ onClose, session }: ChatInterfaceProps) 
           loadConversationHistory(parsedConfig);
         } else if (parsedConfig.userId) {
           // Load user conversations when there's no active conversationId
-          loadUserConversations(parsedConfig.userId);
+          loadUserConversations();
         }
       } catch {
         localStorage.removeItem("cozeConfig");
@@ -93,17 +95,13 @@ export default function ChatInterface({ onClose, session }: ChatInterfaceProps) 
     }
   }, []);
 
-  const loadUserConversations = async (userId: string) => {
-    // hard code userId for testing
-    userId = "66599eb8982ed93d46fc3dba";
-    if (!userId) return;
-
+  const loadUserConversations = async () => {
     setIsLoadingConversations(true);
     setError(null);
 
     try {
       const result = await retrieveUserConversations(userId);
-
+      console.log("User Conversations:", result);
       if (result.success && result.data) {
         setConversations(result.data);
 
@@ -158,7 +156,7 @@ export default function ChatInterface({ onClose, session }: ChatInterfaceProps) 
   };
 
   const loadConversationHistory = async (currentConfig: Config) => {
-    if (!currentConfig.conversationId || !currentConfig.apiKey) return;
+    if (!currentConfig.conversationId) return;
 
     setIsLoadingHistory(true);
     setError(null);
@@ -255,7 +253,7 @@ export default function ChatInterface({ onClose, session }: ChatInterfaceProps) 
       ]);
 
       const { error, conversationId, followUpMessages } =
-        await sendMessageToCoze(message, config, (chunk: string) => {
+        await sendMessageToCoze(message, userId,config, (chunk: string) => {
           setMessages((prev) => {
             const updated = [...prev];
             const lastIndex = updated.length - 1;
@@ -281,7 +279,7 @@ export default function ChatInterface({ onClose, session }: ChatInterfaceProps) 
         localStorage.setItem("cozeConfig", JSON.stringify(updatedConfig));
         // Refresh conversation list when a new conversation is created
         if (config.userId) {
-          loadUserConversations(config.userId);
+          loadUserConversations();
         }
       }
 
@@ -320,7 +318,7 @@ export default function ChatInterface({ onClose, session }: ChatInterfaceProps) 
     if (newConfig.conversationId) {
       loadConversationHistory(newConfig);
     } else if (newConfig.userId) {
-      loadUserConversations(newConfig.userId);
+      loadUserConversations();
     }
   };
 
@@ -330,7 +328,7 @@ export default function ChatInterface({ onClose, session }: ChatInterfaceProps) 
         loadConversationHistory(config);
       }
       if (config.userId) {
-        loadUserConversations(config.userId);
+        loadUserConversations();
       }
     }
   };
@@ -347,8 +345,6 @@ export default function ChatInterface({ onClose, session }: ChatInterfaceProps) 
 
   const handleNewConversation = async () => {
     if (!config) return;
-    // hard code userId for testing
-    const userId = "66599eb8982ed93d46fc3dba";
     const conversationResponse = await initConversation(userId);
 
     // Ensure conversationId is extracted as a string
