@@ -23,7 +23,7 @@ export default async function Home() {
         <HeaderHome session={session} />
         
         {/* Chat Button with Dialog */}
-        <ChatButton />
+        <ChatButton session={session}/>
       </div>
     </main>
   );

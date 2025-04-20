@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import type React from 'react';
+import type React from "react";
 
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { AlertCircle } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AlertCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,13 +14,12 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { generateUserId } from '@/lib/api';
+} from "@/components/ui/dialog";
+import { generateUserId } from "@/lib/api";
 
 type Config = {
-  apiKey: string;
-  botId: string;
-  userId: string;
+  botId?: string;
+  userId?: string;
   conversationId?: string;
 };
 
@@ -38,9 +37,8 @@ export default function ConfigForm({
   initialConfig,
 }: ConfigFormProps) {
   const [formData, setFormData] = useState({
-    apiKey: '',
-    botId: '7488239999658639372', // Default bot ID
-    conversationId: '',
+    botId: "7488239999658639372", // Default bot ID
+    conversationId: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,9 +46,8 @@ export default function ConfigForm({
   useEffect(() => {
     if (initialConfig) {
       setFormData({
-        apiKey: initialConfig.apiKey || '',
-        botId: initialConfig.botId || '7488239999658639372', // Use default if initialConfig not provided
-        conversationId: initialConfig.conversationId || '',
+        botId: initialConfig.botId || "7488239999658639372", // Use default if initialConfig not provided
+        conversationId: initialConfig.conversationId || "",
       });
     }
   }, [initialConfig, open]);
@@ -61,8 +58,8 @@ export default function ConfigForm({
     setError(null);
 
     try {
-      if (!formData.apiKey || !formData.botId) {
-        setError('API Key and Bot ID are required fields');
+      if (!formData.botId) {
+        setError("Bot ID are required fields");
         setIsLoading(false);
         return;
       }
@@ -70,7 +67,6 @@ export default function ConfigForm({
       const userId = initialConfig?.userId || generateUserId();
 
       const newConfig: Config = {
-        apiKey: formData.apiKey,
         botId: formData.botId,
         userId,
         conversationId: formData.conversationId, // Retain existing conversationId if any
@@ -79,7 +75,7 @@ export default function ConfigForm({
       onConfigSaved(newConfig);
       onOpenChange(false);
     } catch (err) {
-      setError('An unexpected error occurred');
+      setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -97,20 +93,6 @@ export default function ConfigForm({
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="apiKey">API Key</Label>
-            <Input
-              id="apiKey"
-              type="text"
-              value={formData.apiKey}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, apiKey: e.target.value }))
-              }
-              placeholder="pat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="botId">Bot ID</Label>
             <Input
               id="botId"
@@ -127,7 +109,7 @@ export default function ConfigForm({
             <Label htmlFor="conversationId">Conversation ID (Optional)</Label>
             <Input
               id="conversationId"
-              value={formData.conversationId || ''}
+              value={formData.conversationId || ""}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
@@ -147,7 +129,7 @@ export default function ConfigForm({
 
           <DialogFooter>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Saving...' : 'Save Configuration'}
+              {isLoading ? "Saving..." : "Save Configuration"}
             </Button>
           </DialogFooter>
         </form>

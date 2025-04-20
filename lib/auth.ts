@@ -34,8 +34,7 @@ export const {
               username: data.account.username,
               email: data.account.email,
               accessToken: data.tokens.accessToken,
-              refreshToken: data.tokens.refreshToken,
-              apiKeyAIService: "",
+              refreshToken: data.tokens.refreshToken
             };
             return user;
           } else {

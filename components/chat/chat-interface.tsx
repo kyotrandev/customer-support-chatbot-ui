@@ -4,18 +4,10 @@ import React, { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Loader2,
-  Send,
-  Settings,
-  RefreshCw,
-  List,
-  User,
-  Bot,
-  X,
-} from "lucide-react";
+import { Loader2, Send, Settings, RefreshCw, List, Bot, X } from "lucide-react";
 import ConfigForm from "./config-form";
 import ReactMarkdown from "react-markdown";
+import { Session } from "next-auth";
 
 import {
   sendMessageToCoze,
@@ -39,9 +31,8 @@ type FollowUpMessage = {
 };
 
 type Config = {
-  apiKey: string;
-  botId: string;
-  userId: string;
+  botId?: string;
+  userId?: string;
   conversationId?: string;
 };
 
@@ -52,9 +43,13 @@ type UserConversation = {
 };
 interface ChatInterfaceProps {
   onClose?: () => void;
+  session: Session | null;
 }
 
-export default function ChatInterface({ onClose }: ChatInterfaceProps) {
+export default function ChatInterface({
+  onClose,
+  session,
+}: ChatInterfaceProps) {
   const { t } = useTranslation("chat");
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -73,9 +68,9 @@ export default function ChatInterface({ onClose }: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // Assistant and user information
-  const assistantName = "AI Assistant";
-  const userName = "You";
+  // hard code userId for testing
+  const userId = session?.user.id || "664b289b7ced2282fcf02c3a";
+  console.log("User ID:", userId);
 
   useEffect(() => {
     const savedConfig = localStorage.getItem("cozeConfig");
@@ -92,7 +87,7 @@ export default function ChatInterface({ onClose }: ChatInterfaceProps) {
           loadConversationHistory(parsedConfig);
         } else if (parsedConfig.userId) {
           // Load user conversations when there's no active conversationId
-          loadUserConversations(parsedConfig.userId);
+          loadUserConversations();
         }
       } catch {
         localStorage.removeItem("cozeConfig");
@@ -100,17 +95,13 @@ export default function ChatInterface({ onClose }: ChatInterfaceProps) {
     }
   }, []);
 
-  const loadUserConversations = async (userId: string) => {
-    // hard code userId for testing
-    userId = "66599eb8982ed93d46fc3dba";
-    if (!userId) return;
-
+  const loadUserConversations = async () => {
     setIsLoadingConversations(true);
     setError(null);
 
     try {
       const result = await retrieveUserConversations(userId);
-
+      console.log("User Conversations:", result);
       if (result.success && result.data) {
         setConversations(result.data);
 
@@ -165,7 +156,7 @@ export default function ChatInterface({ onClose }: ChatInterfaceProps) {
   };
 
   const loadConversationHistory = async (currentConfig: Config) => {
-    if (!currentConfig.conversationId || !currentConfig.apiKey) return;
+    if (!currentConfig.conversationId) return;
 
     setIsLoadingHistory(true);
     setError(null);
@@ -258,18 +249,18 @@ export default function ChatInterface({ onClose }: ChatInterfaceProps) {
     try {
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: t("thinking") },
+        { role: "assistant", content: t("Đang trả lời") },
       ]);
 
       const { error, conversationId, followUpMessages } =
-        await sendMessageToCoze(message, config, (chunk: string) => {
+        await sendMessageToCoze(message, userId,config, (chunk: string) => {
           setMessages((prev) => {
             const updated = [...prev];
             const lastIndex = updated.length - 1;
             updated[lastIndex] = {
               role: "assistant",
               content:
-                updated[lastIndex].content === t("thinking")
+                updated[lastIndex].content === t("Đang trả lời")
                   ? chunk
                   : updated[lastIndex].content + chunk,
             };
@@ -288,7 +279,7 @@ export default function ChatInterface({ onClose }: ChatInterfaceProps) {
         localStorage.setItem("cozeConfig", JSON.stringify(updatedConfig));
         // Refresh conversation list when a new conversation is created
         if (config.userId) {
-          loadUserConversations(config.userId);
+          loadUserConversations();
         }
       }
 
@@ -327,7 +318,7 @@ export default function ChatInterface({ onClose }: ChatInterfaceProps) {
     if (newConfig.conversationId) {
       loadConversationHistory(newConfig);
     } else if (newConfig.userId) {
-      loadUserConversations(newConfig.userId);
+      loadUserConversations();
     }
   };
 
@@ -337,7 +328,7 @@ export default function ChatInterface({ onClose }: ChatInterfaceProps) {
         loadConversationHistory(config);
       }
       if (config.userId) {
-        loadUserConversations(config.userId);
+        loadUserConversations();
       }
     }
   };
@@ -354,8 +345,6 @@ export default function ChatInterface({ onClose }: ChatInterfaceProps) {
 
   const handleNewConversation = async () => {
     if (!config) return;
-    // hard code userId for testing
-    const userId = "66599eb8982ed93d46fc3dba";
     const conversationResponse = await initConversation(userId);
 
     // Ensure conversationId is extracted as a string
@@ -377,11 +366,22 @@ export default function ChatInterface({ onClose }: ChatInterfaceProps) {
   return (
     <div className="flex flex-col h-full w-full max-h-[85vh]">
       <div className="flex-shrink-0 flex justify-between items-center p-4 border-b dark:border-zinc-800">
-        <div className="flex items-center">
+        <div className="flex items-center space-x-3">
+          {/* Avatar bot */}
+          <div className="relative">
+            <img
+              src="/favicon.ico"
+              alt="Bot Avatar"
+              className="h-10 w-10 rounded-full border-2 border-green-500"
+            />
+            {/* Chấm xanh online */}
+            <span className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 border-2 border-white dark:border-zinc-800 rounded-full" />
+          </div>
           <h2 className="text-lg font-medium">
-            {"Trợ thủ Sen - Chuyên viên chăm sóc khách hàng"}
+            {"Trợ lý Sen - Chuyên viên chăm sóc khách hàng"}
           </h2>
         </div>
+
         <div className="flex items-center space-x-2">
           {config?.userId && (
             <Button
@@ -470,8 +470,12 @@ export default function ChatInterface({ onClose }: ChatInterfaceProps) {
             >
               {message.role === "assistant" && (
                 <div className="flex-shrink-0 mr-2">
-                  <div className="bg-purple-100 dark:bg-purple-900 p-1.5 rounded-full">
-                    <Bot className="h-4 w-4 text-purple-600 dark:text-purple-300" />
+                  <div className="bg-blue-100 dark:bg-blue-900 p-1.5 rounded-full">
+                    <img
+                      src="/favicon.ico"
+                      alt="Bot Icon"
+                      className="h-6 w-6 rounded-full"
+                    />
                   </div>
                 </div>
               )}
@@ -516,16 +520,12 @@ export default function ChatInterface({ onClose }: ChatInterfaceProps) {
                   )}
                 </div>
                 <div className="text-xs text-gray-500 mt-1 mx-1.5">
-                  {message.role === "user" ? userName : assistantName}
+                  {message.role === "user"}
                 </div>
               </div>
 
               {message.role === "user" && (
-                <div className="flex-shrink-0 ml-2">
-                  <div className="bg-blue-100 dark:bg-blue-900 p-1.5 rounded-full">
-                    <User className="h-4 w-4 text-blue-600 dark:text-blue-300" />
-                  </div>
-                </div>
+                <div className="flex-shrink-0 ml-2"></div>
               )}
             </div>
           ))
@@ -566,7 +566,7 @@ export default function ChatInterface({ onClose }: ChatInterfaceProps) {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={
-                config ? t("inputPlaceholder") : t("pleaseConfigPlaceholder")
+                config ? t("Nhâp nội dung chat") : t("pleaseConfigPlaceholder")
               }
               className="w-full resize-none pr-12 min-h-[44px] max-h-[120px] py-3 text-sm rounded-full px-4 focus-visible:ring-blue-500 dark:bg-zinc-800 dark:focus-visible:ring-blue-600"
               disabled={isLoading || isLoadingHistory || !config}

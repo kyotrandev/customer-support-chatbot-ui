@@ -18,7 +18,6 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify(backendPayload)
     });
-    
     // Process the response
     const data = await response.json();
     // Map response codes to success or error
