@@ -20,7 +20,7 @@ export const CardWrapper = ({
   return (
     <Card className="w-full max-w-md bg-transparent backdrop-blur-lg border border-white/20 shadow-2xl">
       <CardHeader>
-        <Header label={headerLabel || "Welcome to AI Assistant"} />
+        <Header label={headerLabel || "Chào mừng đến với Sen Chatbot"} />
       </CardHeader>
       <CardContent className="space-y-4">
         {children}

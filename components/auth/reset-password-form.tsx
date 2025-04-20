@@ -84,6 +84,7 @@ export default function ResetPasswordForm() {
           window.location.href = "/auth/login";
         } else {
           toast.error(result.error || "Đặt lại mật khẩu thất bại");
+          window.location.href = "/auth/error"
         }
       } catch {
         toast.error("Lỗi khi đặt lại mật khẩu");

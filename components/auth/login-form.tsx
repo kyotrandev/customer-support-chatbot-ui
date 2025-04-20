@@ -42,22 +42,22 @@ const LoginForm = () => {
           password: values.password,
         })
         if (result?.error) {
-          toast.error('Login failed')
+          toast.error('Đăng nhập thất bại')
         } else {
-          toast.success('Login successful')
+          toast.success('Đăng nhập thành công')
           window.location.href = DEFAULT_LOGIN_REDIRECT
         }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
-        toast.error(err.message || 'Invalid data')
+        toast.error(err.message || 'Dữ liệu không hợp lệ')
       }
     })
   }
 
   return (
     <CardWrapper
-      headerLabel="Welcome back!"
-      backButtonLabel="Don't have an account?"
+      headerLabel="Chào mừng trở lại!"
+      backButtonLabel="Chưa có tài khoản?"
       backButtonHref="/auth/register"
       showSocial
     >
@@ -78,7 +78,7 @@ const LoginForm = () => {
                   <FormItem>
                     <FormLabel className="flex items-center gap-2 text-gray-100">
                       <User className="h-5 w-5 text-teal-300" />
-                      Username
+                      Tên đăng nhập
                     </FormLabel>
                     <FormControl>
                       <motion.div
@@ -89,7 +89,7 @@ const LoginForm = () => {
                         <Input
                           {...field}
                           disabled={isPending}
-                          placeholder="Enter your username"
+                          placeholder="Nhập tên đăng nhập"
                           type="text"
                           className="bg-gradient-to-r from-gray-800 to-gray-700 border border-transparent text-white placeholder-gray-400 focus:border-teal-400 pl-3"
                         />
@@ -108,7 +108,7 @@ const LoginForm = () => {
                   <FormItem>
                     <FormLabel className="flex items-center gap-2 text-gray-100">
                       <KeyRound className="h-5 w-5 text-teal-300" />
-                      Password
+                      Mật khẩu
                     </FormLabel>
                     <FormControl>
                       <motion.div
@@ -133,13 +133,13 @@ const LoginForm = () => {
               {/* Forgot password link */}
               <div className="flex justify-end">
                 {isPending ? (
-                  <span className="text-sm text-gray-500">Forgot password?</span>
+                  <span className="text-sm text-gray-500">Quên mật khẩu?</span>
                 ) : (
                   <Link
                     href="/auth/forgot-password"
                     className="text-sm text-teal-300 hover:text-teal-200 transition"
                   >
-                    Forgot password?
+                    Quên mật khẩu?
                   </Link>
                 )}
               </div>
@@ -153,12 +153,12 @@ const LoginForm = () => {
               {isPending ? (
                 <>
                   <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin"></div>
-                  Logging in...
+                  Đang đăng nhập...
                 </>
               ) : (
                 <>
                   <LogIn className="h-5 w-5" />
-                  Login
+                  Đăng nhập
                 </>
               )}
             </Button>

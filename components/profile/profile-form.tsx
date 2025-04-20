@@ -78,7 +78,7 @@ const ProfilePage = () => {
       }
 
       if (!session?.tokens?.accessToken) {
-        setError("Access token not found");
+        setError("Không tìm thấy mã truy cập");
         setLoading(false);
         return;
       }
@@ -115,10 +115,10 @@ const ProfilePage = () => {
               weight: profileData.weight || 0,
             });
           } else {
-            setError(response.error || "Could not load profile information");
+            setError(response.error || "Không thể tải thông tin hồ sơ");
           }
         } catch (err) {
-          setError("An error occurred while loading profile information");
+          setError("Đã xảy ra lỗi khi tải thông tin hồ sơ");
           console.error(err);
         } finally {
           setLoading(false);
@@ -133,7 +133,7 @@ const ProfilePage = () => {
   const onSubmit = async (values: z.infer<typeof profileSchema>) => {
     try {
       if (!session?.tokens?.accessToken) {
-        toast.error("You need to be logged in to perform this action");
+        toast.error("Bạn cần đăng nhập để thực hiện thao tác này");
         return;
       }
 
@@ -154,12 +154,12 @@ const ProfilePage = () => {
         setProfile(updatedProfile);
         localStorage.setItem("profile", JSON.stringify(updatedProfile)); // Save to localStorage
         setTabValue("profile");
-        toast.success("Information updated successfully");
+        toast.success("Cập nhật thông tin thành công");
       } else {
-        toast.error(response.error || "Failed to update information");
+        toast.error(response.error || "Cập nhật thông tin thất bại");
       }
     } catch (err) {
-      toast.error("An error occurred while updating information");
+      toast.error("Đã xảy ra lỗi khi cập nhật thông tin");
       console.error(err);
     }
   };
@@ -182,11 +182,11 @@ const ProfilePage = () => {
         <div className="pt-24 px-4 container max-w-4xl mx-auto">
           <Alert variant="destructive" className="bg-red-500/10 border border-red-500/50 text-white">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>Lỗi</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
           <div className="mt-4">
-            <Button onClick={() => router.push("/auth/login")}>Return to login page</Button>
+            <Button onClick={() => router.push("/auth/login")}>Quay lại trang đăng nhập</Button>
           </div>
         </div>
       </div>
@@ -201,16 +201,16 @@ const ProfilePage = () => {
         <div className="mb-6 flex items-center">
           <Link href="/" className="text-indigo-300 hover:text-indigo-200 flex items-center gap-2 mb-4">
             <ArrowLeft className="h-4 w-4" />
-            Back to Home
+            Trở về Trang chủ
           </Link>
         </div>
         
         <div className="mb-8">
           <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
-            Profile Settings
+            Cài đặt Hồ sơ
           </h1>
           <p className="text-slate-300 mt-2">
-            Manage your account information and preferences
+            Quản lý thông tin tài khoản và tùy chọn cá nhân
           </p>
         </div>
         
@@ -223,59 +223,59 @@ const ProfilePage = () => {
                 className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white"
               >
                 <User className="h-4 w-4 mr-2" />
-                Personal Information
+                Thông tin cá nhân
               </TabsTrigger>
               <TabsTrigger 
                 value="edit" 
                 className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white"
               >
                 <Pencil className="h-4 w-4 mr-2" />
-                Edit Information
+                Chỉnh sửa thông tin
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="profile">
               <Card className="bg-white/10 backdrop-blur-lg border border-white/20 text-white">
                 <CardHeader>
-                  <CardTitle>Personal Information</CardTitle>
+                  <CardTitle>Thông tin cá nhân</CardTitle>
                   <CardDescription className="text-slate-300">
-                    Your personal information is displayed below
+                    Thông tin cá nhân của bạn được hiển thị bên dưới
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {profile ? (
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-1">
-                        <h3 className="text-sm font-medium text-indigo-300">Username</h3>
-                        <p className="text-base bg-white/5 p-2 rounded-md">{session?.user.username || "Not updated"}</p>
+                        <h3 className="text-sm font-medium text-indigo-300">Tên đăng nhập</h3>
+                        <p className="text-base bg-white/5 p-2 rounded-md">{session?.user.username || "Chưa cập nhật"}</p>
                       </div>
                       <div className="space-y-1">
-                        <h3 className="text-sm font-medium text-indigo-300">Full Name</h3>
-                        <p className="text-base bg-white/5 p-2 rounded-md">{profile.name || "Not updated"}</p>
+                        <h3 className="text-sm font-medium text-indigo-300">Họ và tên</h3>
+                        <p className="text-base bg-white/5 p-2 rounded-md">{profile.name || "Chưa cập nhật"}</p>
                       </div>
                       <div className="space-y-1">
-                        <h3 className="text-sm font-medium text-indigo-300">Date of Birth</h3>
-                        <p className="text-base bg-white/5 p-2 rounded-md">{profile.dateOfBirth || "Not updated"}</p>
+                        <h3 className="text-sm font-medium text-indigo-300">Ngày sinh</h3>
+                        <p className="text-base bg-white/5 p-2 rounded-md">{profile.dateOfBirth || "Chưa cập nhật"}</p>
                       </div>
                       <div className="space-y-1">
-                        <h3 className="text-sm font-medium text-indigo-300">Age</h3>
-                        <p className="text-base bg-white/5 p-2 rounded-md">{profile.age || "Not updated"}</p>
+                        <h3 className="text-sm font-medium text-indigo-300">Tuổi</h3>
+                        <p className="text-base bg-white/5 p-2 rounded-md">{profile.age || "Chưa cập nhật"}</p>
                       </div>
                       <div className="space-y-1">
-                        <h3 className="text-sm font-medium text-indigo-300">Height</h3>
-                        <p className="text-base bg-white/5 p-2 rounded-md">{profile.height ? `${profile.height} cm` : "Not updated"}</p>
+                        <h3 className="text-sm font-medium text-indigo-300">Chiều cao</h3>
+                        <p className="text-base bg-white/5 p-2 rounded-md">{profile.height ? `${profile.height} cm` : "Chưa cập nhật"}</p>
                       </div>
                       <div className="space-y-1">
-                        <h3 className="text-sm font-medium text-indigo-300">Weight</h3>
-                        <p className="text-base bg-white/5 p-2 rounded-md">{profile.weight ? `${profile.weight} kg` : "Not updated"}</p>
+                        <h3 className="text-sm font-medium text-indigo-300">Cân nặng</h3>
+                        <p className="text-base bg-white/5 p-2 rounded-md">{profile.weight ? `${profile.weight} kg` : "Chưa cập nhật"}</p>
                       </div>
                       <div className="space-y-1">
-                        <h3 className="text-sm font-medium text-indigo-300">BMI</h3>
-                        <p className="text-base bg-white/5 p-2 rounded-md">{profile.bmi ? profile.bmi.toFixed(1) : "Not updated"}</p>
+                        <h3 className="text-sm font-medium text-indigo-300">Chỉ số BMI</h3>
+                        <p className="text-base bg-white/5 p-2 rounded-md">{profile.bmi ? profile.bmi.toFixed(1) : "Chưa cập nhật"}</p>
                       </div>
                     </div>
                   ) : (
-                    <p>No profile information available</p>
+                    <p>Không có thông tin hồ sơ</p>
                   )}
                 </CardContent>
                 <CardFooter className="flex flex-wrap gap-3">
@@ -285,7 +285,7 @@ const ProfilePage = () => {
                     onClick={() => setTabValue("edit")}
                   >
                     <Pencil className="mr-2 h-4 w-4" />
-                    Update Information
+                    Cập nhật thông tin
                   </Button>
                   <Button
                     variant="outline"
@@ -293,7 +293,7 @@ const ProfilePage = () => {
                     onClick={() => router.push("/auth/change-password")}
                   >
                     <Key className="mr-2 h-4 w-4" />
-                    Change Password
+                    Đổi mật khẩu
                   </Button>
                 </CardFooter>
               </Card>
@@ -302,9 +302,9 @@ const ProfilePage = () => {
             <TabsContent value="edit">
               <Card className="bg-white/10 backdrop-blur-lg border border-white/20 text-white">
                 <CardHeader>
-                  <CardTitle>Update Information</CardTitle>
+                  <CardTitle>Cập nhật thông tin</CardTitle>
                   <CardDescription className="text-slate-300">
-                    Update your personal information
+                    Cập nhật thông tin cá nhân của bạn
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -316,10 +316,10 @@ const ProfilePage = () => {
                           name="name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-white">Full Name</FormLabel>
+                              <FormLabel className="text-white">Họ và tên</FormLabel>
                               <FormControl>
                                 <Input 
-                                  placeholder="Enter full name" 
+                                  placeholder="Nhập họ và tên" 
                                   {...field} 
                                   className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-indigo-400"
                                 />
@@ -334,7 +334,7 @@ const ProfilePage = () => {
                           name="dateOfBirth"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-white">Date of Birth</FormLabel>
+                              <FormLabel className="text-white">Ngày sinh</FormLabel>
                               <FormControl>
                                 <Input 
                                   placeholder="DD-MM-YYYY" 
@@ -343,7 +343,7 @@ const ProfilePage = () => {
                                 />
                               </FormControl>
                               <FormDescription className="text-slate-400">
-                                Format: DD-MM-YYYY (example: 07-06-2004)
+                                Định dạng: DD-MM-YYYY (ví dụ: 07-06-2004)
                               </FormDescription>
                               <FormMessage className="text-pink-300" />
                             </FormItem>
@@ -355,12 +355,12 @@ const ProfilePage = () => {
                           name="height"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-white">Height (cm)</FormLabel>
+                              <FormLabel className="text-white">Chiều cao (cm)</FormLabel>
                               <FormControl>
                                 <Input 
                                   type="number" 
                                   step="0.1" 
-                                  placeholder="Enter height" 
+                                  placeholder="Nhập chiều cao" 
                                   {...field} 
                                   className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-indigo-400"
                                 />
@@ -375,12 +375,12 @@ const ProfilePage = () => {
                           name="weight"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-white">Weight (kg)</FormLabel>
+                              <FormLabel className="text-white">Cân nặng (kg)</FormLabel>
                               <FormControl>
                                 <Input 
                                   type="number" 
                                   step="0.1" 
-                                  placeholder="Enter weight" 
+                                  placeholder="Nhập cân nặng" 
                                   {...field} 
                                   className="bg-white/5 border-white/20 text-white placeholder:text-slate-400 focus:border-indigo-400"
                                 />
@@ -398,14 +398,14 @@ const ProfilePage = () => {
                           onClick={() => setTabValue("profile")}
                           className="border-indigo-500/50 hover:border-black bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700"
                         >
-                          Cancel
+                          Hủy bỏ
                         </Button>
                         <Button 
                           variant="outline" 
                           type="submit"
                           className="border-indigo-500/50 hover:border-black bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700"
                         >
-                          Save Changes
+                          Lưu thay đổi
                         </Button>
                       </div>
                     </form>
