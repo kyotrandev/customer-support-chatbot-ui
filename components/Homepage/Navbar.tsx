@@ -1,3 +1,4 @@
+// components/NavBarHome.tsx
 import { assets } from "@/assets/assets";
 import { Button } from "@/components/ui/button";
 import AvatarDropdown from "@/components/Homepage/AvartarDropdown"; // Client component for dropdown
@@ -16,24 +17,24 @@ const NavBarHome = ({ session } : { session: Session | null}) => {
               <Bot className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-300">
-              Sen AI
+              Sen Chatbot
             </span>
           </Link>
 
-          {/* Liên kết điều hướng */}
-          <div className="hidden md:flex items-center space-x-8">
+          {/* Navigation Links */}
+          {/* <div className="hidden md:flex items-center space-x-8">
             <Link href="/#features" className="text-slate-300 hover:text-white transition-colors">
-              Tính năng
+              Features
             </Link>
             <Link href="/#pricing" className="text-slate-300 hover:text-white transition-colors">
-              Bảng giá
+              Pricing
             </Link>
             <Link href="/#about" className="text-slate-300 hover:text-white transition-colors">
-              Giới thiệu
+              About
             </Link>
-          </div>
+          </div> */}
 
-          {/* Nút đăng nhập hoặc avatar */}
+          {/* Auth Buttons or Avatar */}
           <div className="flex items-center space-x-4">
             {session ? (
               <div className="flex items-center space-x-3">
@@ -42,19 +43,19 @@ const NavBarHome = ({ session } : { session: Session | null}) => {
                 </div>
                 <AvatarDropdown
                   image={assets.logo}
-                  name={session.user.username || "Người dùng"}
+                  name={session.user.username || "User"}
                 />
               </div>
             ) : (
               <div className="flex items-center space-x-3">
                 <Link href="/auth/login">
                   <Button variant="ghost" className="order-indigo-500/50 hover:border-black bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700">
-                    Đăng nhập
+                    Log in
                   </Button>
                 </Link>
                 <Link href="/auth/register">
                   <Button className="order-indigo-500/50 hover:border-black bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700">
-                    Đăng ký
+                    Sign up
                   </Button>
                 </Link>
               </div>
