@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 
 const font = Poppins({
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["500", "700"],
 })
 
 interface HeaderProps {
@@ -14,37 +14,46 @@ interface HeaderProps {
 export const Header = ({ label }: HeaderProps) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="relative w-full py-12 flex flex-col items-center justify-center gap-4 overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      className="relative w-full pt-8 pb-6 flex flex-col items-center justify-center overflow-hidden"
     >
-      {/* Subtle background glow */}
-      <div
-        className="absolute inset-0 bg-gradient-to-br from-purple-700/20 via-indigo-500/10 to-transparent pointer-events-none animate-pulse"
-      />
+      {/* Modern background effect */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-6 left-1/4 w-24 h-24 rounded-full bg-blue-500/10 blur-xl" />
+        <div className="absolute bottom-8 right-1/3 w-32 h-32 rounded-full bg-purple-500/10 blur-xl" />
+      </div>
 
-      <h1
-        className={cn(
-          "text-4xl sm:text-5xl font-extrabold tracking-tight text-center",
-          "bg-gradient-to-r from-sky-500 to-purple-600 bg-clip-text text-transparent",
-          font.className
-        )}
+      <div className="flex items-center gap-3 mb-6">
+        <h1
+          className={cn(
+            "text-2xl font-bold",
+            "bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent",
+            font.className
+          )}
+        >
+          Sen Chatbot
+        </h1>
+      </div>
+
+      {/* Minimalist descriptor */}
+      <motion.p 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="text-gray-300 text-sm text-center max-w-xs"
       >
-        AI Chatbot
-      </h1>
-
-      {/* Animated underline */}
-      <motion.div
-        initial={{ width: 0 }}
-        animate={{ width: '6rem' }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-        className="h-1 bg-gradient-to-r from-sky-500 to-purple-600 rounded-full"
-      />
-
-      <p className="text-muted-foreground text-base sm:text-lg text-center max-w-md font-medium">
         {label}
-      </p>
+      </motion.p>
+
+      {/* Simple bottom line */}
+      <motion.div
+        initial={{ scaleX: 0 }}
+        animate={{ scaleX: 1 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+        className="h-px w-16 bg-gradient-to-r from-transparent via-purple-400 to-transparent mt-4"
+      />
     </motion.div>
   )
 }

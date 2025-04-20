@@ -17,12 +17,12 @@ const NavBarHome = ({ session } : { session: Session | null}) => {
               <Bot className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-300">
-              AI Chatbot
+              Sen Chatbot
             </span>
           </Link>
 
           {/* Navigation Links */}
-          <div className="hidden md:flex items-center space-x-8">
+          {/* <div className="hidden md:flex items-center space-x-8">
             <Link href="/#features" className="text-slate-300 hover:text-white transition-colors">
               Features
             </Link>
@@ -32,7 +32,7 @@ const NavBarHome = ({ session } : { session: Session | null}) => {
             <Link href="/#about" className="text-slate-300 hover:text-white transition-colors">
               About
             </Link>
-          </div>
+          </div> */}
 
           {/* Auth Buttons or Avatar */}
           <div className="flex items-center space-x-4">

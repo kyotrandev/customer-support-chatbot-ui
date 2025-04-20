@@ -13,7 +13,7 @@ const HeaderHome = ({ session }: { session: Session | null }) => {
       {/* Animated greeting with user's name */}
       {session && (
         <div className="flex items-center gap-3 px-6 py-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 mb-4 animate-fadeIn">
-          <span className="text-lg">Hey {displayName}</span>
+          <span className="text-lg">Chào mừng {displayName}! đã đến với Sen Chatbot</span>
           <div className="w-6 h-6 relative">
             <Image
               src={assets.hand_wave}
@@ -27,20 +27,20 @@ const HeaderHome = ({ session }: { session: Session | null }) => {
       
       {/* Main headline */}
       <h1 className="text-4xl sm:text-6xl font-bold tracking-tight max-w-3xl leading-tight">
-        Experience the{" "}
+        Sen Chatbot là{" "}
         <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-blue-500">
-          Next Generation
+          nhân viên số nhằm chăm sóc khách hàng
         </span>{" "}
-        of AI Chatbot
+        một cách chuyên nghiệp
       </h1>
       
       {/* Subheading */}
       <p className="text-xl sm:text-2xl text-slate-300 max-w-2xl mx-auto font-light">
-        Intelligent conversations, creative assistance, and powerful insights at your fingertips
+        Tự động trả lời tin nhắn 24/7, giải pháp hỗ trợ khách hàng nhanh chóng và hiệu quả.{" "}
       </p>
       
       {/* CTA Button */}
-      {session ? (
+      {/* {session ? (
         <Link href="/chat">
           <Button size="lg" className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 rounded-full px-8 py-6 text-lg mt-6 group transition-all">
             Start Chatting
@@ -54,7 +54,7 @@ const HeaderHome = ({ session }: { session: Session | null }) => {
             <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Button>
         </Link>
-      )}
+      )} */}
       
       {/* Animated bot icon */}
       <div className="relative w-48 h-48 mt-16">

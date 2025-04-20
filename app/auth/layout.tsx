@@ -58,7 +58,7 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
         />
 
         {/* Logo */}
-        <motion.div
+        {/* <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.5, delay: 0.3, ease: 'backOut' }}
@@ -67,7 +67,7 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
           <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center drop-shadow-lg">
             <span className="text-white text-2xl font-bold">AI</span>
           </div>
-        </motion.div>
+        </motion.div> */}
 
         {children}
       </motion.div>
