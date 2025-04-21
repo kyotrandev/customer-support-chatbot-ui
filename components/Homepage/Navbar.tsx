@@ -50,12 +50,12 @@ const NavBarHome = ({ session } : { session: Session | null}) => {
               <div className="flex items-center space-x-3">
                 <Link href="/auth/login">
                   <Button variant="ghost" className="order-indigo-500/50 hover:border-black bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700">
-                    Log in
+                    Đăng nhập
                   </Button>
                 </Link>
                 <Link href="/auth/register">
                   <Button className="order-indigo-500/50 hover:border-black bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700">
-                    Sign up
+                    Đăng ký
                   </Button>
                 </Link>
               </div>

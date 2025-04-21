@@ -235,7 +235,7 @@ export async function resetPassword(
       body: JSON.stringify({ email, newPassword }),
     });
     const data = await response.json();
-    if (response.ok && data.message === "Reset mật khẩu thành công") {
+    if (response.ok) {
       return { success: true, data };
     }
     return { success: false, error: data.message || "Reset mật khẩu thất bại" };

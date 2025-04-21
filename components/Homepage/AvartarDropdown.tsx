@@ -73,14 +73,14 @@ const AvatarDropdown = ({ image, name }: AvatarDropdownProps) => {
               className="flex items-center w-full px-4 py-2.5 text-left text-sm text-white hover:bg-white/10 transition-colors"
             >
               <User className="h-4 w-4 mr-2 text-indigo-300" />
-              Profile
+              Hồ sơ
             </button>
             <button
               onClick={handleLogoutClick}
               className="flex items-center w-full px-4 py-2.5 text-left text-sm text-white hover:bg-white/10 transition-colors"
             >
               <LogOut className="h-4 w-4 mr-2 text-indigo-300" />
-              Logout
+              Đăng xuất
             </button>
           </div>
         </div>

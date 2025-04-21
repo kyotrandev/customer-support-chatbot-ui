@@ -253,7 +253,7 @@ export default function ChatInterface({
       ]);
 
       const { error, conversationId, followUpMessages } =
-        await sendMessageToCoze(message, userId,config, (chunk: string) => {
+        await sendMessageToCoze(message, userId, config, (chunk: string) => {
           setMessages((prev) => {
             const updated = [...prev];
             const lastIndex = updated.length - 1;

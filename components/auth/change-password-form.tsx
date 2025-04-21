@@ -56,7 +56,7 @@ export default function ChangePasswordForm() {
   return (
     <CardWrapper
       headerLabel="Đổi mật khẩu"
-      backButtonLabel="Back to Home"
+      backButtonLabel="Trở về trang chủ"
       backButtonHref="/"
       showSocial={false}
     >
