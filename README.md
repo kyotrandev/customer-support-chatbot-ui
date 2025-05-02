@@ -37,8 +37,8 @@
 ### Steps
 
 ```bash
-git clone https://github.com/KyoTranKMA/customer-support-ui-demo.git
-cd customer-support-ui-demo
+git clone https://github.com/KyoTranKMA/customer-support-chatbot-ui.git
+cd customer-support-chatbot-ui
 
 pnpm install
 pnpm dev         # Start development
